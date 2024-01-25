@@ -1,5 +1,8 @@
 import { init } from "@stricjs/app"
 
-init({
-  routes: ["./src"],
-})
+await init({
+	routes: ["./src"],
+	serve: {
+		reusePort: true,
+	},
+});

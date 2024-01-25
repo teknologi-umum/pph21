@@ -1,109 +1,129 @@
 <!DOCTYPE html>
 <html lang="id-ID">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PPh 21</title>
-</head>
-<style>
-  * {
-    font-family: sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
-  }
-
-  tr td:last-child {
-    text-align: right;
-  }
-</style>
-<body>
-  <h1>PPh 21 dengan Tarif Efektif Rata-rata (TER)</h1>
-  <form action="" method="post">
-    <input type="number" name="salary" min="0" placeholder="Gaji bulanan">
-    <input type="number" name="bonus" min="0" placeholder="Bonus tahunan (THR, Jasa produksi)">
-    <select name="status">
-      <option value="TK/0">Tidak Kawin | 0 Tanggungan</option>
-      <option value="TK/1">Tidak Kawin | 1 Tanggungan</option>
-      <option value="TK/2">Tidak Kawin | 2 Tanggungan</option>
-      <option value="TK/2">Tidak Kawin | 3 Tanggungan</option>
-      <option value="K/0">Kawin | 0 Tanggungan</option>
-      <option value="K/1">Kawin | 1 Tanggungan</option>
-      <option value="K/2">Kawin | 2 Tanggungan</option>
-      <option value="K/3">Kawin | 3 Tanggungan</option>
-    </select>
-    <input type="submit" value="Hitung">
-  </form>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Komponen</th>
-        <th>Nominal</th>
-      </tr>
-    </thead>
-      <tr>
-        <td>Gaji Bulanan</td>
-        <td>{{salary}}</td>
-      </tr>
-      <tr>
-        <td>Bonus</td>
-        <td>{{bonus}}</td>
-      </tr>
-      <tr>
-        <td>BPJSTK JKK - Perusahaan (0,24%)</td>
-        <td>{{employerInsuranceContributionJkk}}</td>
-      </tr>
-      <tr>
-        <td>BPJSTK JKM - Perusahaan (0,3%)</td>
-        <td>{{employerInsuranceContributionJkm}}</td>
-      </tr>
-      <tr>
-        <td>BPJSKES - Perusahaan (4%, maks. Rp480.000)</td>
-        <td>{{employerInsuranceContributionBpjskes}}</td>
-      </tr>
-      <tr>
-        <td>BPJSTK JHT - Karyawan (2%)</td>
-        <td>- {{employeeInsuranceContributionJht}}</td>
-      </tr>
-      <tr>
-        <td>BPJSTK JP - Karyawan (1%, maks. Rp95.596)</td>
-        <td>- {{employeeInsuranceContributionJp}}</td>
-      </tr>
-      <tr>
-        <td>Biaya Jabatan</td>
-        <td>- {{occupationalExpense}}</td>
-      </tr>
-      <tr>
-        <td>Penghasilan Neto Bulanan</td>
-        <td>{{netMonthlyIncome}}</td>
-      </tr>
-      <tr>
-        <td>Penghasilan Neto Tahunan</td>
-        <td>{{netYearlyIncome}}</td>
-      </tr>
-      <tr>
-        <td>Penghasilan Tidak Kena Pajak</td>
-        <td>- {{nonTaxableIncome}}</td>
-      </tr>
-      <tr>
-        <td>Penghasilan Kena Pajak</td>
-        <td>{{taxableIncome}}</td>
-      </tr>
-      <tr>
-        <td>Pajak Bulanan</td>
-        <td>{{regularMonthTax}}</td>
-      </tr>
-      <tr>
-        <td>Pajak di Bulan Bonus</td>
-        <td>{{bonusMonthTax}}</td>
-      </tr>
-      <tr>
-        <td>Pajak di Bulan Desember</td>
-        <td>{{decemberMonthTax}}</td>
-      </tr>
-      <tr>
-        <td>Total Pajak Setahun</td>
-        <td>{{totalTax}}</td>
-      </tr>
-  </table>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>PPh 21</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/styles.css" />
+        {{#development}}
+        <script>
+            // connect to websocket to listen for filechanges when hotreloading
+            const socket = new WebSocket('ws://localhost:3000/__hmr');
+            socket.addEventListener('message', async function (event) {
+                if (event.data === 'reload') {
+                    window.location.reload();
+                }
+            });
+        </script>
+        {{/development}}
+    </head>
+    <body>
+        <div>
+            <h1 class="title">PPh 21</h1>
+            <h2>Tarif Efektif Rata-rata (TER)</h2>
+        </div>
+        <form action="" method="post">
+            <input
+                    type="number"
+                    name="salary"
+                    min="0"
+                    placeholder="Gaji bulanan"
+            >
+            <input
+                    type="number"
+                    name="bonus"
+                    min="0"
+                    placeholder="Bonus tahunan (THR, Jasa produksi)"
+            >
+            <select name="status">
+                <option value="TK/0">Tidak Kawin | 0 Tanggungan</option>
+                <option value="TK/1">Tidak Kawin | 1 Tanggungan</option>
+                <option value="TK/2">Tidak Kawin | 2 Tanggungan</option>
+                <option value="TK/2">Tidak Kawin | 3 Tanggungan</option>
+                <option value="K/0">Kawin | 0 Tanggungan</option>
+                <option value="K/1">Kawin | 1 Tanggungan</option>
+                <option value="K/2">Kawin | 2 Tanggungan</option>
+                <option value="K/3">Kawin | 3 Tanggungan</option>
+            </select>
+            <input
+                    type="submit"
+                    value="Hitung"
+            >
+        </form>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Komponen</th>
+                    <th>Nominal</th>
+                </tr>
+            </thead>
+            <tr>
+                <td>Gaji Bulanan</td>
+                <td>{{salary}}</td>
+            </tr>
+            <tr>
+                <td>Bonus</td>
+                <td>{{bonus}}</td>
+            </tr>
+            <tr>
+                <td>BPJSTK JKK - Perusahaan (0,24%)</td>
+                <td>{{employerInsuranceContributionJkk}}</td>
+            </tr>
+            <tr>
+                <td>BPJSTK JKM - Perusahaan (0,3%)</td>
+                <td>{{employerInsuranceContributionJkm}}</td>
+            </tr>
+            <tr>
+                <td>BPJSKES - Perusahaan (4%, maks. Rp480.000)</td>
+                <td>{{employerInsuranceContributionBpjskes}}</td>
+            </tr>
+            <tr>
+                <td>BPJSTK JHT - Karyawan (2%)</td>
+                <td>- {{employeeInsuranceContributionJht}}</td>
+            </tr>
+            <tr>
+                <td>BPJSTK JP - Karyawan (1%, maks. Rp95.596)</td>
+                <td>- {{employeeInsuranceContributionJp}}</td>
+            </tr>
+            <tr>
+                <td>Biaya Jabatan</td>
+                <td>- {{occupationalExpense}}</td>
+            </tr>
+            <tr>
+                <td>Penghasilan Neto Bulanan</td>
+                <td>{{netMonthlyIncome}}</td>
+            </tr>
+            <tr>
+                <td>Penghasilan Neto Tahunan</td>
+                <td>{{netYearlyIncome}}</td>
+            </tr>
+            <tr>
+                <td>Penghasilan Tidak Kena Pajak</td>
+                <td>- {{nonTaxableIncome}}</td>
+            </tr>
+            <tr>
+                <td>Penghasilan Kena Pajak</td>
+                <td>{{taxableIncome}}</td>
+            </tr>
+            <tr>
+                <td>Pajak Bulanan</td>
+                <td>{{regularMonthTax}}</td>
+            </tr>
+            <tr>
+                <td>Pajak di Bulan Bonus</td>
+                <td>{{bonusMonthTax}}</td>
+            </tr>
+            <tr>
+                <td>Pajak di Bulan Desember</td>
+                <td>{{decemberMonthTax}}</td>
+            </tr>
+            <tr>
+                <td>Total Pajak Setahun</td>
+                <td>{{totalTax}}</td>
+            </tr>
+        </table>
+    </body>
 </html>

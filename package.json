@@ -3,7 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --watch index.ts",
+    "dev": "MODE=development bun --watch run index.ts",
     "build": "bun build index.ts --target bun",
     "start": "NODE_ENV=production bun index.ts",
     "test": "bun test"

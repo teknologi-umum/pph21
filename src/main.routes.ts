@@ -1,67 +1,88 @@
 import type { Context } from "@stricjs/app"
 import { routes } from "@stricjs/app"
 import Mustache from "mustache"
-import { calculateTax, toTaxPayerStatus } from "./tax"
+import { calculateTax, localise, toTaxPayerStatus } from "./tax"
+import { file, head, html } from "@stricjs/app/send";
+import wsRoute from "./hmr.ws.ts";
+
+let template = await Bun.file(import.meta.dir + "/index.html").text();
 
 export default routes()
-  .get('/', getHandler)
-  .post('/', postHandler)
+	.get("/public/*", getAssetsHandler)
+	.get('/__hmr', (c) => wsRoute.upgrade(c))
+	.get('/', getHandler)
+	.post('/', postHandler)
+	.reject(() => head({ status: 500 }));
 
-const template = await Bun.file(import.meta.dir + "/index.html").text()
+await Bun.build({
+	entrypoints: [import.meta.dir + "/client.ts"],
+	outdir: import.meta.dir + "/public",
+	minify: import.meta.env.MODE !== "development",
+});
 
-function getHandler(_: Context) {
-  return new Response(Mustache.render(template, {}), {
-    headers: {
-      "content-type": "text/html",
-    },
-  })
+async function getAssetsHandler(ctx: Context) {
+	const path = new URL(ctx.req.url).pathname;
+	// rebuild the client file if in development mode
+	if (import.meta.env.MODE === "development") {
+		await Bun.build({
+			entrypoints: [import.meta.dir + "/client.ts"],
+			outdir: import.meta.dir + "/public",
+		});
+	}
+	return file(import.meta.dir + path);
+}
+
+async function getHandler(_: Context) {
+	// load latest template if in development mode
+	if (import.meta.env.MODE === "development") {
+		template = await Bun.file(import.meta.dir + "/index.html").text()
+	}
+	return html(Mustache.render(template, {
+		development: import.meta.env.MODE === "development",
+	}));
 }
 
 async function postHandler(context: Context) {
-  const formData = await context.req.formData()
-  const rawStatus = formData.get("status")
-  const rawSalary = formData.get("salary")
-  const rawBonus = formData.get("bonus")
+	const formData = await context.req.formData()
+	const rawStatus = formData.get("status")
+	const rawSalary = formData.get("salary")
+	const rawBonus = formData.get("bonus")
 
-  if (rawStatus === null) {
-    return new Response(null, { status: 400 })
-  }
-  const status = toTaxPayerStatus(rawStatus.toString())
+	if (rawStatus === null) return head({ status: 400 });
 
-  const salary = Number(rawSalary)
-  if (Number.isNaN(salary)) {
-    return new Response(null, { status: 400 })
-  }
+	const taxpayerStatus = toTaxPayerStatus(rawStatus.toString())
 
-  const bonus = Number(rawBonus)
-  if (Number.isNaN(bonus)) {
-    return new Response(null, { status: 400 })
-  }
+	const salary = Number(rawSalary)
+	if (Number.isNaN(salary)) return head({ status: 400 });
 
-  const result = calculateTax(salary, bonus, status)
-  const templateData = {
-    salary: salary.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    bonus: bonus.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    taxRateCategory: result.taxRateCategory,
-    employerInsuranceContributionJkk: result.employerInsuranceContribution.jkk.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    employerInsuranceContributionJkm: result.employerInsuranceContribution.jkm.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    employeeInsuranceContributionJht: result.employeeInsuranceContribution.jht.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    employeeInsuranceContributionJp: result.employeeInsuranceContribution.jp.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    employerInsuranceContributionBpjskes: result.employerInsuranceContribution.bpjskes.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    occupationalExpense: result.occupationalExpense.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    netMonthlyIncome: result.netMonthlyIncome.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    netYearlyIncome: result.netYearlyIncome.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    nonTaxableIncome: result.nonTaxableIncome.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    taxableIncome: result.taxableIncome.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    regularMonthTax: result.regularMonthTax.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    bonusMonthTax: result.bonusMonthTax.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    decemberMonthTax: result.decemberMonthTax.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-    totalTax: result.totalTax.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
-  }
+	const bonus = Number(rawBonus)
+	if (Number.isNaN(bonus)) return head({ status: 400 });
 
-  return new Response(Mustache.render(template, templateData), {
-    headers: {
-      "content-type": "text/html",
-    },
-  })
+	const result = calculateTax(salary, bonus, taxpayerStatus)
+	const templateData = {
+		salary: salary.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
+		bonus: bonus.toLocaleString("id-ID", { style: "currency", currency: "IDR" }),
+		taxRateCategory: result.taxRateCategory,
+		employerInsuranceContributionJkk: localise(result.employerInsuranceContribution.jkk),
+		employerInsuranceContributionJkm: localise(result.employerInsuranceContribution.jkm),
+		employeeInsuranceContributionJht: localise(result.employeeInsuranceContribution.jht),
+		employeeInsuranceContributionJp: localise(result.employeeInsuranceContribution.jp),
+		employerInsuranceContributionBpjskes: localise(result.employerInsuranceContribution.bpjskes),
+		occupationalExpense: localise(result.occupationalExpense),
+		netMonthlyIncome: localise(result.netMonthlyIncome),
+		netYearlyIncome: localise(result.netYearlyIncome),
+		nonTaxableIncome: localise(result.nonTaxableIncome),
+		taxableIncome: localise(result.taxableIncome),
+		regularMonthTax: localise(result.regularMonthTax),
+		bonusMonthTax: localise(result.bonusMonthTax),
+		decemberMonthTax: localise(result.decemberMonthTax),
+		totalTax: localise(result.totalTax),
+		development: import.meta.env.MODE === "development",
+	}
+
+	// load latest template if in development mode
+	if (import.meta.env.MODE === "development") {
+		template = await Bun.file(import.meta.dir + "/index.html").text()
+	}
+	return html(Mustache.render(template, templateData))
 }

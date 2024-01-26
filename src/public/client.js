@@ -293,10 +293,7 @@ var TaxRateCategory;
 })(TaxRateCategory || (TaxRateCategory = {}));
 
 // src/tax.ts.ts
-var salaryInput = document.getElementById("salary");
-var bonusInput = document.getElementById("bonus");
-var statusInput = document.getElementById("status");
-salaryInput.addEventListener("input", (event) => {
+var calculateResult = function() {
   let salary = salaryInput.valueAsNumber;
   if (Number.isNaN(salary))
     salary = 0;
@@ -304,16 +301,17 @@ salaryInput.addEventListener("input", (event) => {
   if (Number.isNaN(bonus))
     bonus = 0;
   const status = toTaxPayerStatus(statusInput.value);
+  console.log({ status });
   const result = calculateTax(salary, bonus, status);
   const templateData = {
     salary: localise(salary),
     bonus: localise(bonus),
     employerInsuranceContributionJkk: localise(result.employerInsuranceContribution.jkk),
     employerInsuranceContributionJkm: localise(result.employerInsuranceContribution.jkm),
-    employeeInsuranceContributionJht: localise(result.employeeInsuranceContribution.jht * -1),
-    employeeInsuranceContributionJp: localise(result.employeeInsuranceContribution.jp * -1),
+    employeeInsuranceContributionJht: localise(result.employeeInsuranceContribution.jht),
+    employeeInsuranceContributionJp: localise(result.employeeInsuranceContribution.jp),
     employerInsuranceContributionBpjskes: localise(result.employerInsuranceContribution.bpjskes),
-    occupationalExpense: localise(result.occupationalExpense * -1),
+    occupationalExpense: localise(result.occupationalExpense),
     netMonthlyIncome: localise(result.netMonthlyIncome),
     netYearlyIncome: localise(result.netYearlyIncome),
     nonTaxableIncome: localise(result.nonTaxableIncome),
@@ -327,4 +325,10 @@ salaryInput.addEventListener("input", (event) => {
     const element = document.getElementById(`${key}_value`);
     element.innerHTML = value;
   }
-});
+};
+var salaryInput = document.getElementById("salary");
+var bonusInput = document.getElementById("bonus");
+var statusInput = document.getElementById("status");
+salaryInput.addEventListener("input", calculateResult);
+bonusInput.addEventListener("input", calculateResult);
+statusInput.addEventListener("change", calculateResult);

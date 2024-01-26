@@ -1,20 +1,35 @@
 import type { Context } from "@stricjs/app"
 import { routes } from "@stricjs/app"
 import Mustache from "mustache"
-import { calculateTax, toTaxPayerStatus } from "./tax"
+import { calculateTax, localise, toTaxPayerStatus } from "./tax"
 import { file, head, html } from "@stricjs/app/send";
 import wsRoute from "./hmr.ws.ts";
 
 let template = await Bun.file(import.meta.dir + "/index.html").text();
 
 export default routes()
-	.get("/styles.css", getCssHandler)
+	.get("/public/*", getAssetsHandler)
 	.get('/__hmr', (c) => wsRoute.upgrade(c))
 	.get('/', getHandler)
 	.post('/', postHandler)
+	.reject(() => head({ status: 500 }));
 
-function getCssHandler(_: Context) {
-	return file(import.meta.dir + "/styles.css");
+await Bun.build({
+	entrypoints: [import.meta.dir + "/client.ts"],
+	outdir: import.meta.dir + "/public",
+	minify: import.meta.env.MODE !== "development",
+});
+
+async function getAssetsHandler(ctx: Context) {
+	const path = new URL(ctx.req.url).pathname;
+	// rebuild the client file if in development mode
+	if (import.meta.env.MODE === "development") {
+		await Bun.build({
+			entrypoints: [import.meta.dir + "/client.ts"],
+			outdir: import.meta.dir + "/public",
+		});
+	}
+	return file(import.meta.dir + path);
 }
 
 async function getHandler(_: Context) {
@@ -25,10 +40,6 @@ async function getHandler(_: Context) {
 	return html(Mustache.render(template, {
 		development: import.meta.env.MODE === "development",
 	}));
-}
-
-function localise(num: number) {
-	return num.toLocaleString("id-ID", { style: "currency", currency: "IDR" })
 }
 
 async function postHandler(context: Context) {

@@ -41,9 +41,6 @@ body {
     box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.2);
 }
 
-.form {
-}
-
 .form__input-container {
     display: flex;
     gap: 1rem;
@@ -120,4 +117,38 @@ body {
 
 .table td:last-child {
     text-align: right;
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 1.5rem;
+    }
+
+    .title__container {
+        margin: 1rem;
+    }
+
+    .app {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .form__input-container {
+        flex-direction: column;
+    }
+
+    .table {
+        font-size: 1rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.25rem;
+        border-width: 1px 3px 2px 3px;
+    }
+
+    .table th:last-child,
+    .table td:last-child {
+        width: 40%;
+    }
 }

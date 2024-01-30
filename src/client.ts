@@ -14,7 +14,6 @@ function calculateResult() {
 	let bonus = bonusInput.valueAsNumber;
 	if (Number.isNaN(bonus)) bonus = 0;
 	const status = toTaxPayerStatus(statusInput.value);
-	console.log({ status })
 
 	const result = calculateTax(salary, bonus, status);
 	const templateData = {
